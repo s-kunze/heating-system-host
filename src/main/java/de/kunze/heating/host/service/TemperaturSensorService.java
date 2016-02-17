@@ -84,6 +84,13 @@ public class TemperaturSensorService {
     }
 
     File[] getTemperaturSensorNames() {
+	String[] list = TEMPERATUR_BASE.list();
+	log.info("BasePath: " + TEMPERATUR_BASE.getPath());
+
+	for (String s : list) {
+	    log.info("TemperaturSensor: " + s);
+	}
+
 	return TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus"));
     }
 
