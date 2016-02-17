@@ -24,7 +24,7 @@ import lombok.extern.java.Log;
 @Log
 public class TemperaturSensorService {
 
-    private static final File TEMPERATUR_BASE = Paths.get("sys", "bus", "w1", "devices").toFile();;
+    private static final File TEMPERATUR_BASE = Paths.get("/sys", "bus", "w1", "devices").toFile();;
     private static final String DATA_FILE_NAME = "w1_slave";
 
     public List<TemperaturSensor> getTemperaturSensor() {
@@ -84,6 +84,13 @@ public class TemperaturSensorService {
     }
 
     File[] getTemperaturSensorNames() {
+	String[] list = TEMPERATUR_BASE.list();
+	log.info("BasePath: " + TEMPERATUR_BASE.getPath());
+
+	for (String s : list) {
+	    log.info("TemperaturSensor: " + s);
+	}
+
 	return TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus"));
     }
 
