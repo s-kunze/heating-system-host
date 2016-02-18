@@ -1,4 +1,4 @@
-package de.kunze.heating.host.service;
+package de.kunze.heating.host.exeception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -1,4 +1,4 @@
-package de.kunze.heating.host.service;
+package de.kunze.heating.host.service.impl;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -25,16 +25,17 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 import com.google.common.io.Files;
 
-import de.kunze.heating.host.transfer.TemperaturSensor;
+import de.kunze.heating.host.service.impl.TemperaturSensorServiceImpl;
+import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
 import lombok.SneakyThrows;
 import lombok.val;
 
-public class TemperaturSensorServiceTest {
+public class TemperaturSensorServiceImplTest {
 
     @Mock
-    private TemperaturSensorService temperaturSensorService;
+    private TemperaturSensorServiceImpl temperaturSensorService;
 
-    public TemperaturSensorServiceTest() {
+    public TemperaturSensorServiceImplTest() {
 	MockitoAnnotations.initMocks(this);
     }
 
@@ -48,19 +49,19 @@ public class TemperaturSensorServiceTest {
 	when(temperaturSensorService.getTemperaturSensor()).thenCallRealMethod();
 	when(temperaturSensorService.getTemperaturSensorNames()).thenReturn(createTemperaturSensors());
 
-	List<TemperaturSensor> temperaturSensors = temperaturSensorService.getTemperaturSensor();
+	List<TemperaturSensorTransfer> temperaturSensors = temperaturSensorService.getTemperaturSensor();
 
 	assertNotNull(temperaturSensors);
 	assertThat(temperaturSensors.size(), equalTo(2));
 
-	TemperaturSensor temperaturSensor1 = temperaturSensors.get(0);
+	TemperaturSensorTransfer temperaturSensor1 = temperaturSensors.get(0);
 	assertNotNull(temperaturSensor1.getTemperaturSensorId());
 	assertNotNull(temperaturSensor1.getLinks());
 	Link link1 = temperaturSensor1.getLink("self");
 	assertNotNull(link1);
 	assertThat(link1.getHref(), containsString("28-0315743cc7ff"));
 
-	TemperaturSensor temperaturSensor2 = temperaturSensors.get(1);
+	TemperaturSensorTransfer temperaturSensor2 = temperaturSensors.get(1);
 	assertNotNull(temperaturSensor2.getTemperaturSensorId());
 	assertNotNull(temperaturSensor2.getLinks());
 	Link link2 = temperaturSensor2.getLink("self");

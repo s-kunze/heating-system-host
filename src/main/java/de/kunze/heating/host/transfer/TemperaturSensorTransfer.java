@@ -10,19 +10,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class TemperaturSensor extends ResourceSupport {
+public class TemperaturSensorTransfer extends ResourceSupport {
 
 	private final String temperaturSensorId;
 	private final Integer temperatur;
 
 	@JsonCreator
-	public TemperaturSensor(@JsonProperty String temperaturSensorId) {
+	public TemperaturSensorTransfer(@JsonProperty String temperaturSensorId) {
 		this.temperaturSensorId = temperaturSensorId;
 		this.temperatur = null;
 	}
 
 	@JsonCreator
-	public TemperaturSensor(@JsonProperty String temperaturSensorId,
+	public TemperaturSensorTransfer(@JsonProperty String temperaturSensorId,
 			@JsonProperty Integer temperatur) {
 		this.temperaturSensorId = temperaturSensorId;
 		this.temperatur = temperatur;
