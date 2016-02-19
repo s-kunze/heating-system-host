@@ -18,12 +18,13 @@ import de.kunze.heating.host.api.TemperaturSensorResource;
 import de.kunze.heating.host.exeception.TemperaturSensorNotFoundException;
 import de.kunze.heating.host.service.TemperaturSensorService;
 import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
-import de.kunze.heating.host.util.Loggable;
 import lombok.SneakyThrows;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-public class TemperaturSensorServiceImpl implements Loggable, TemperaturSensorService {
+@Slf4j
+public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
     private static final File TEMPERATUR_BASE = Paths.get("/sys", "bus", "w1", "devices").toFile();;
     private static final String DATA_FILE_NAME = "w1_slave";
@@ -37,10 +38,9 @@ public class TemperaturSensorServiceImpl implements Loggable, TemperaturSensorSe
 	if (sensors != null) {
 	    for (File sensor : sensors) {
 		String temperaturSensorId = sensor.getName();
-		logger().info("Find sensor: {}", temperaturSensorId);
+		log.info("Find sensor: {}", temperaturSensorId);
 		val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
-		temperaturSensor
-			.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
+		temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
 
 		result.add(temperaturSensor);
 	    }
@@ -52,8 +52,8 @@ public class TemperaturSensorServiceImpl implements Loggable, TemperaturSensorSe
     @Override
     public TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId) {
 	val result = new TemperaturSensorTransfer(temperaturSensorId, getTemperatur(temperaturSensorId));
-	result.add(linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId))
-		.withSelfRel());
+	result.add(
+		linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
 
 	return result;
     }
@@ -83,7 +83,7 @@ public class TemperaturSensorServiceImpl implements Loggable, TemperaturSensorSe
 	String content = StringUtils.collectionToDelimitedString(lines, "");
 
 	String temperatur = content.substring(content.lastIndexOf('=') + 1);
-	logger().info("Temperatur is: {}", temperatur);
+	log.info("Temperatur is: {}", temperatur);
 	return Integer.valueOf(temperatur);
     }
 
