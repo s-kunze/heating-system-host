@@ -21,4 +21,6 @@ public class Relais {
 
     private Status status;
 
+    private Long wiringPiId;
+
 }
