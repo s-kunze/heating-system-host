@@ -26,69 +26,69 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
-    private static final File TEMPERATUR_BASE = Paths.get("/sys", "bus", "w1", "devices").toFile();;
-    private static final String DATA_FILE_NAME = "w1_slave";
+	private static final File TEMPERATUR_BASE = Paths.get("/sys", "bus", "w1", "devices").toFile();;
+	private static final String DATA_FILE_NAME = "w1_slave";
 
-    @Override
-    public List<TemperaturSensorTransfer> getTemperaturSensor() {
-	List<TemperaturSensorTransfer> result = new ArrayList<>();
+	@Override
+	public List<TemperaturSensorTransfer> getTemperaturSensor() {
+		List<TemperaturSensorTransfer> result = new ArrayList<>();
 
-	File[] sensors = getTemperaturSensorNames();
+		File[] sensors = getTemperaturSensorNames();
 
-	if (sensors != null) {
-	    for (File sensor : sensors) {
-		String temperaturSensorId = sensor.getName();
-		log.info("Find sensor: {}", temperaturSensorId);
-		val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
-		temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
+		if (sensors != null) {
+			for (File sensor : sensors) {
+				String temperaturSensorId = sensor.getName();
+				log.info("Find sensor: {}", temperaturSensorId);
+				val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
+				temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
 
-		result.add(temperaturSensor);
-	    }
+				result.add(temperaturSensor);
+			}
+		}
+
+		return result;
 	}
 
-	return result;
-    }
+	@Override
+	public TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId) {
+		val result = new TemperaturSensorTransfer(temperaturSensorId, getTemperatur(temperaturSensorId));
+		result.add(
+				linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
 
-    @Override
-    public TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId) {
-	val result = new TemperaturSensorTransfer(temperaturSensorId, getTemperatur(temperaturSensorId));
-	result.add(
-		linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
-
-	return result;
-    }
-
-    Integer getTemperatur(String temperaturSensorId) {
-	File[] possibleTemperaturSensors = TEMPERATUR_BASE.listFiles(f -> f.getName().equals(temperaturSensorId));
-
-	if (possibleTemperaturSensors == null || possibleTemperaturSensors.length != 1) {
-	    throw new TemperaturSensorNotFoundException();
+		return result;
 	}
 
-	File temperaturSensor = possibleTemperaturSensors[0];
+	Integer getTemperatur(String temperaturSensorId) {
+		File[] possibleTemperaturSensors = TEMPERATUR_BASE.listFiles(f -> f.getName().equals(temperaturSensorId));
 
-	File[] possibleDataFiles = temperaturSensor.listFiles(f -> f.getName().equals(DATA_FILE_NAME));
-	if (possibleDataFiles == null || possibleDataFiles.length != 1) {
-	    throw new TemperaturSensorNotFoundException();
+		if (possibleTemperaturSensors == null || possibleTemperaturSensors.length != 1) {
+			throw new TemperaturSensorNotFoundException();
+		}
+
+		File temperaturSensor = possibleTemperaturSensors[0];
+
+		File[] possibleDataFiles = temperaturSensor.listFiles(f -> f.getName().equals(DATA_FILE_NAME));
+		if (possibleDataFiles == null || possibleDataFiles.length != 1) {
+			throw new TemperaturSensorNotFoundException();
+		}
+
+		File dataFile = possibleDataFiles[0];
+
+		return getTemperaturFromFile(dataFile);
 	}
 
-	File dataFile = possibleDataFiles[0];
+	@SneakyThrows
+	Integer getTemperaturFromFile(File dataFile) {
+		List<String> lines = Files.readLines(dataFile, Charset.forName("UTF-8"));
+		String content = StringUtils.collectionToDelimitedString(lines, "");
 
-	return getTemperaturFromFile(dataFile);
-    }
+		String temperatur = content.substring(content.lastIndexOf('=') + 1);
+		log.info("Temperatur is: {}", temperatur);
+		return Integer.valueOf(temperatur);
+	}
 
-    @SneakyThrows
-    Integer getTemperaturFromFile(File dataFile) {
-	List<String> lines = Files.readLines(dataFile, Charset.forName("UTF-8"));
-	String content = StringUtils.collectionToDelimitedString(lines, "");
-
-	String temperatur = content.substring(content.lastIndexOf('=') + 1);
-	log.info("Temperatur is: {}", temperatur);
-	return Integer.valueOf(temperatur);
-    }
-
-    File[] getTemperaturSensorNames() {
-	return TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus"));
-    }
+	File[] getTemperaturSensorNames() {
+		return TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus"));
+	}
 
 }

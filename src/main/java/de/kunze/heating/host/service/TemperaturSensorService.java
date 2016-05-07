@@ -6,8 +6,8 @@ import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
 
 public interface TemperaturSensorService {
 
-    List<TemperaturSensorTransfer> getTemperaturSensor();
+	List<TemperaturSensorTransfer> getTemperaturSensor();
 
-    TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId);
+	TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId);
 
 }

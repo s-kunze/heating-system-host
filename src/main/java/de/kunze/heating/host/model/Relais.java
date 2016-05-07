@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Relais {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long id;
 
-    private Status status;
+	private Status status;
 
-    private Long wiringPiId;
+	private Long wiringPiId;
 
 }

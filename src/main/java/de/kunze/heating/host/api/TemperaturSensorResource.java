@@ -20,17 +20,17 @@ import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
 @RequestMapping("/temperatursensor")
 public class TemperaturSensorResource {
 
-    @Autowired
-    private TemperaturSensorService temperaturSensorService;
+	@Autowired
+	private TemperaturSensorService temperaturSensorService;
 
-    @RequestMapping(method = RequestMethod.GET, value = "")
-    public List<TemperaturSensorTransfer> getTemperaturSensors() {
-	return temperaturSensorService.getTemperaturSensor();
-    }
+	@RequestMapping(method = RequestMethod.GET, value = "")
+	public List<TemperaturSensorTransfer> getTemperaturSensors() {
+		return temperaturSensorService.getTemperaturSensor();
+	}
 
-    @RequestMapping(method = RequestMethod.GET, value = "/{temperaturSensorId}")
-    public TemperaturSensorTransfer getTemperaturSensor(@PathVariable String temperaturSensorId) {
-	return temperaturSensorService.getTemperaturSensor(temperaturSensorId);
-    }
+	@RequestMapping(method = RequestMethod.GET, value = "/{temperaturSensorId}")
+	public TemperaturSensorTransfer getTemperaturSensor(@PathVariable String temperaturSensorId) {
+		return temperaturSensorService.getTemperaturSensor(temperaturSensorId);
+	}
 
 }

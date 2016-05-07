@@ -12,28 +12,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(Include.NON_NULL)
 public class RelaisTransfer extends ResourceSupport {
 
-    private final Long relaisId;
-    private final StatusTransfer status;
-    private final Long wiringPiId;
+	private final Long relaisId;
+	private final StatusTransfer status;
+	private final Long wiringPiId;
 
-    @JsonCreator
-    public RelaisTransfer(@JsonProperty Long relaisId, @JsonProperty StatusTransfer status,
-	    @JsonProperty Long wiringPiId) {
-	this.relaisId = relaisId;
-	this.status = status;
-	this.wiringPiId = wiringPiId;
-    }
+	@JsonCreator
+	public RelaisTransfer(@JsonProperty Long relaisId, @JsonProperty StatusTransfer status,
+			@JsonProperty Long wiringPiId) {
+		this.relaisId = relaisId;
+		this.status = status;
+		this.wiringPiId = wiringPiId;
+	}
 
-    public Long getRelaisId() {
-	return relaisId;
-    }
+	public Long getRelaisId() {
+		return relaisId;
+	}
 
-    public StatusTransfer getStatus() {
-	return status;
-    }
+	public StatusTransfer getStatus() {
+		return status;
+	}
 
-    public Long getWiringPiId() {
-	return wiringPiId;
-    }
+	public Long getWiringPiId() {
+		return wiringPiId;
+	}
 
 }

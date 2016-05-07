@@ -22,8 +22,7 @@ public class TemperaturSensorTransfer extends ResourceSupport {
 	}
 
 	@JsonCreator
-	public TemperaturSensorTransfer(@JsonProperty String temperaturSensorId,
-			@JsonProperty Integer temperatur) {
+	public TemperaturSensorTransfer(@JsonProperty String temperaturSensorId, @JsonProperty Integer temperatur) {
 		this.temperaturSensorId = temperaturSensorId;
 		this.temperatur = temperatur;
 	}

@@ -15,32 +15,32 @@ import de.kunze.heating.host.transfer.RelaisTransfer;
 @RequestMapping("/relais")
 public class RelaisResource {
 
-    @Autowired
-    private RelaisService relaisService;
+	@Autowired
+	private RelaisService relaisService;
 
-    @RequestMapping(method = RequestMethod.GET, value = "")
-    public List<RelaisTransfer> getRelaiss() {
-	return relaisService.getRelaiss();
-    }
+	@RequestMapping(method = RequestMethod.GET, value = "")
+	public List<RelaisTransfer> getRelaiss() {
+		return relaisService.getRelaiss();
+	}
 
-    @RequestMapping(method = RequestMethod.POST, value = "")
-    public RelaisTransfer createRelais() {
-	return relaisService.createRelais();
-    }
+	@RequestMapping(method = RequestMethod.POST, value = "")
+	public RelaisTransfer createRelais() {
+		return relaisService.createRelais();
+	}
 
-    @RequestMapping(method = RequestMethod.GET, value = "/{relaisId}")
-    public RelaisTransfer getRelais(@PathVariable Long relaisId) {
-	return relaisService.getRelais(relaisId);
-    }
+	@RequestMapping(method = RequestMethod.GET, value = "/{relaisId}")
+	public RelaisTransfer getRelais(@PathVariable Long relaisId) {
+		return relaisService.getRelais(relaisId);
+	}
 
-    @RequestMapping(method = RequestMethod.POST, value = "/{relaisId}/on")
-    public RelaisTransfer on(@PathVariable Long relaisId) {
-	return relaisService.on(relaisId);
-    }
+	@RequestMapping(method = RequestMethod.POST, value = "/{relaisId}/on")
+	public RelaisTransfer on(@PathVariable Long relaisId) {
+		return relaisService.on(relaisId);
+	}
 
-    @RequestMapping(method = RequestMethod.POST, value = "/{relaisId}/off")
-    public RelaisTransfer off(@PathVariable Long relaisId) {
-	return relaisService.off(relaisId);
-    }
+	@RequestMapping(method = RequestMethod.POST, value = "/{relaisId}/off")
+	public RelaisTransfer off(@PathVariable Long relaisId) {
+		return relaisService.off(relaisId);
+	}
 
 }
