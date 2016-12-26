@@ -2,7 +2,6 @@ package de.kunze.heating.host.service.impl;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,36 +14,29 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
-import org.springframework.util.StringUtils;
 
 import de.kunze.heating.host.api.RelaisResource;
 import de.kunze.heating.host.model.Relais;
 import de.kunze.heating.host.model.Status;
 import de.kunze.heating.host.repository.RelaisRepository;
-import de.kunze.heating.host.service.HeatingConfiguration;
+import de.kunze.heating.host.service.CommunicationService;
 import de.kunze.heating.host.service.RelaisService;
 import de.kunze.heating.host.transfer.RelaisTransfer;
 import de.kunze.heating.host.transfer.StatusTransfer;
 import lombok.val;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class RelaisServiceImpl implements RelaisService, ApplicationListener<ContextRefreshedEvent> {
-
-	private static final String RELAIS_COMMAND_ACTIVATE = "gpio mode %d out";
-	private static final String RELAIS_COMMAND_ON = "gpio write %d 0";
-	private static final String RELAIS_COMMAND_OFF = "gpio write %d 1";
 
 	private final RelaisRepository relaisRepository;
 	private final JtaTransactionManager jtaTransactionManager;
-	private final HeatingConfiguration heatingConfiguration;
+	private final CommunicationService communicationService;
 
 	public RelaisServiceImpl(RelaisRepository relaisRepository, JtaTransactionManager jtaTransactionManager,
-			HeatingConfiguration heatingConfiguration) {
+			CommunicationService communicationService) {
 		this.relaisRepository = relaisRepository;
 		this.jtaTransactionManager = jtaTransactionManager;
-		this.heatingConfiguration = heatingConfiguration;
+		this.communicationService = communicationService;
 	}
 
 	@PostConstruct
@@ -54,13 +46,7 @@ public class RelaisServiceImpl implements RelaisService, ApplicationListener<Con
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-		StringUtils.commaDelimitedListToSet(heatingConfiguration.getRelaisids()).stream().forEach(relais -> {
-			val r = new Relais();
-
-			r.setStatus(Status.UNKNOWN);
-			r.setWiringPiId(Long.valueOf(relais));
-			relaisRepository.save(r);
-		});
+		communicationService.getRelaisFromSystem().forEach(r -> relaisRepository.save(r));
 	}
 
 	@Override
@@ -118,7 +104,7 @@ public class RelaisServiceImpl implements RelaisService, ApplicationListener<Con
 		Relais relais = relaisRepository.findOne(relaisId);
 		relais.setStatus(status);
 
-		setRelais(status, relais.getWiringPiId());
+		communicationService.relais(status, relais.getWiringPiId());
 
 		relais = relaisRepository.save(relais);
 		final RelaisTransfer result = new RelaisTransfer(relais.getId(),
@@ -130,32 +116,6 @@ public class RelaisServiceImpl implements RelaisService, ApplicationListener<Con
 		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash(link).withRel(link));
 
 		return result;
-	}
-
-	private void setRelais(Status status, Long wiringPiId) {
-		try {
-			String command = String.format(RELAIS_COMMAND_ACTIVATE, wiringPiId);
-
-			log.info("Exec: {}", command);
-			final Process activateRelais = Runtime.getRuntime().exec(command);
-			activateRelais.waitFor();
-
-			command = null;
-			if (Status.ON == status) {
-				command = String.format(RELAIS_COMMAND_ON, wiringPiId);
-			} else if (Status.OFF == status) {
-				command = String.format(RELAIS_COMMAND_OFF, wiringPiId);
-			}
-
-			if (command != null) {
-				log.info("Exec: {}", command);
-				final Process setRelais = Runtime.getRuntime().exec(command);
-				setRelais.waitFor();
-			}
-		} catch (IOException | InterruptedException e) {
-			log.error("", e);
-			throw new RuntimeException(e);
-		}
 	}
 
 }
