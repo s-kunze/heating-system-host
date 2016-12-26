@@ -5,14 +5,16 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import com.google.common.io.Files;
 
 import de.kunze.heating.host.api.TemperaturSensorResource;
 import de.kunze.heating.host.exeception.TemperaturSensorNotFoundException;
@@ -27,26 +29,17 @@ import lombok.extern.slf4j.Slf4j;
 public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
 	private static final File TEMPERATUR_BASE = Paths.get("/sys", "bus", "w1", "devices").toFile();;
-	private static final String DATA_FILE_NAME = "w1_slave";
+	// private static final String DATA_FILE_NAME = "w1_slave";
 
 	@Override
 	public List<TemperaturSensorTransfer> getTemperaturSensor() {
-		List<TemperaturSensorTransfer> result = new ArrayList<>();
-
-		File[] sensors = getTemperaturSensorNames();
-
-		if (sensors != null) {
-			for (File sensor : sensors) {
-				String temperaturSensorId = sensor.getName();
-				log.info("Find sensor: {}", temperaturSensorId);
-				val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
-				temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
-
-				result.add(temperaturSensor);
-			}
-		}
-
-		return result;
+		return getTemperaturSensorNames().map(sensor -> {
+			final String temperaturSensorId = sensor.getName();
+			log.info("Find sensor: {}", temperaturSensorId);
+			val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
+			temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
+			return temperaturSensor;
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -59,36 +52,25 @@ public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 	}
 
 	Integer getTemperatur(String temperaturSensorId) {
-		File[] possibleTemperaturSensors = TEMPERATUR_BASE.listFiles(f -> f.getName().equals(temperaturSensorId));
+		final Optional<File> maybeTemperaturSensor = getTemperaturSensorNames()
+				.filter(f -> f.getName().equals(temperaturSensorId)).findFirst();
 
-		if (possibleTemperaturSensors == null || possibleTemperaturSensors.length != 1) {
-			throw new TemperaturSensorNotFoundException();
-		}
-
-		File temperaturSensor = possibleTemperaturSensors[0];
-
-		File[] possibleDataFiles = temperaturSensor.listFiles(f -> f.getName().equals(DATA_FILE_NAME));
-		if (possibleDataFiles == null || possibleDataFiles.length != 1) {
-			throw new TemperaturSensorNotFoundException();
-		}
-
-		File dataFile = possibleDataFiles[0];
-
-		return getTemperaturFromFile(dataFile);
+		final File temperaturSensor = maybeTemperaturSensor.orElseThrow(() -> new TemperaturSensorNotFoundException());
+		return getTemperaturFromFile(temperaturSensor);
 	}
 
 	@SneakyThrows
 	Integer getTemperaturFromFile(File dataFile) {
-		List<String> lines = Files.readLines(dataFile, Charset.forName("UTF-8"));
-		String content = StringUtils.collectionToDelimitedString(lines, "");
+		final List<String> lines = Files.readAllLines(dataFile.toPath(), Charset.forName("UTF-8"));
+		final String content = StringUtils.collectionToDelimitedString(lines, "");
 
-		String temperatur = content.substring(content.lastIndexOf('=') + 1);
+		final String temperatur = content.substring(content.lastIndexOf('=') + 1);
 		log.info("Temperatur is: {}", temperatur);
 		return Integer.valueOf(temperatur);
 	}
 
-	File[] getTemperaturSensorNames() {
-		return TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus"));
+	Stream<File> getTemperaturSensorNames() {
+		return Arrays.stream(TEMPERATUR_BASE.listFiles(f -> !f.getName().contains("bus")));
 	}
 
 }

@@ -10,9 +10,11 @@ import static org.mockito.Mockito.when;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +24,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletWebRequest;
-
-import com.google.common.io.Files;
 
 import de.kunze.heating.host.service.impl.TemperaturSensorServiceImpl;
 import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
@@ -83,7 +83,7 @@ public class TemperaturSensorServiceImplTest {
 	private File createDataFile() {
 		File file = new File("test");
 
-		try (BufferedWriter bufferedWriter = Files.newWriter(file, Charset.forName("UTF-8"))) {
+		try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file.toPath(), Charset.forName("UTF-8"))) {
 			bufferedWriter.write("33 00 4b 46 ff ff 02 10 f4 : crc=f4 YES");
 			bufferedWriter.write("\r\n");
 			bufferedWriter.write("33 00 4b 46 ff ff 02 10 f4 t=25625");
@@ -92,7 +92,7 @@ public class TemperaturSensorServiceImplTest {
 		return file;
 	}
 
-	private File[] createTemperaturSensors() {
+	private Stream<File> createTemperaturSensors() {
 		val result = new ArrayList<File>();
 
 		File temperaturSensor1 = Paths.get("sys", "bus", "w1", "devices", "28-0315743cc7ff").toFile();
@@ -101,7 +101,7 @@ public class TemperaturSensorServiceImplTest {
 		result.add(temperaturSensor1);
 		result.add(temperaturSensor2);
 
-		return result.toArray(new File[result.size()]);
+		return result.stream();
 	}
 
 }
