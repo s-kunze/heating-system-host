@@ -20,13 +20,13 @@ public class RelaisResource {
 	public RelaisResource(RelaisService relaisService) {
 		this.relaisService = relaisService;
 	}
-	
-	@GetMapping(value = "")
+
+	@GetMapping
 	public List<RelaisTransfer> getRelaiss() {
 		return relaisService.getRelaiss();
 	}
 
-	@PostMapping(value = "")
+	@PostMapping
 	public RelaisTransfer createRelais() {
 		return relaisService.createRelais();
 	}
@@ -37,12 +37,12 @@ public class RelaisResource {
 	}
 
 	@PostMapping(value = "/{relaisId}/on")
-	public RelaisTransfer on(@PathVariable(required = true)  Long relaisId) {
+	public RelaisTransfer on(@PathVariable(required = true) Long relaisId) {
 		return relaisService.on(relaisId);
 	}
 
 	@PostMapping(value = "/{relaisId}/off")
-	public RelaisTransfer off(@PathVariable(required = true)  Long relaisId) {
+	public RelaisTransfer off(@PathVariable(required = true) Long relaisId) {
 		return relaisService.off(relaisId);
 	}
 

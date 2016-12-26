@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.annotation.PostConstruct;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
@@ -30,22 +30,24 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class RelaisServiceImpl implements RelaisService, InitializingBean, ApplicationListener<ContextRefreshedEvent> {
+public class RelaisServiceImpl implements RelaisService, ApplicationListener<ContextRefreshedEvent> {
 
 	private static final String RELAIS_COMMAND_ACTIVATE = "gpio mode %d out";
 	private static final String RELAIS_COMMAND_ON = "gpio write %d 0";
 	private static final String RELAIS_COMMAND_OFF = "gpio write %d 1";
 
-	@Autowired
-	private RelaisRepository relaisRepository;
+	private final RelaisRepository relaisRepository;
+	private final JtaTransactionManager jtaTransactionManager;
+	private final HeatingConfiguration heatingConfiguration;
 
-	@Autowired
-	private JtaTransactionManager jtaTransactionManager;
+	public RelaisServiceImpl(RelaisRepository relaisRepository, JtaTransactionManager jtaTransactionManager,
+			HeatingConfiguration heatingConfiguration) {
+		this.relaisRepository = relaisRepository;
+		this.jtaTransactionManager = jtaTransactionManager;
+		this.heatingConfiguration = heatingConfiguration;
+	}
 
-	@Autowired
-	private HeatingConfiguration heatingConfiguration;
-
-	@Override
+	@PostConstruct
 	public void afterPropertiesSet() throws Exception {
 		jtaTransactionManager.setAllowCustomIsolationLevels(true);
 	}

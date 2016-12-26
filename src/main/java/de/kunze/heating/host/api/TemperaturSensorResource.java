@@ -25,7 +25,7 @@ public class TemperaturSensorResource {
 		this.temperaturSensorService = temperaturSensorService;
 	}
 
-	@GetMapping(value = "")
+	@GetMapping
 	public List<TemperaturSensorTransfer> getTemperaturSensors() {
 		return temperaturSensorService.getTemperaturSensor();
 	}
