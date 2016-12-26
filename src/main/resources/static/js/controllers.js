@@ -4,13 +4,13 @@ app.controller("temperaturController", function ($scope, $http, $interval) {
 			'Accept' : "application/json"
 	}
 	
-	$http.get("/temperatursensor/", headers).then(function (response) {
+	$http.get("/temperatursensor.json", headers).then(function (response) {
 		var data = response.data;
 		$scope.sensores = data;
 	});   
 	
 	$interval(function() {
-		$http.get("/temperatursensor/", headers).then(function (response) {
+		$http.get("/temperatursensor.json", headers).then(function (response) {
 			var data = response.data;
 			$scope.sensores = data;
 		});        
@@ -25,7 +25,7 @@ app.controller("relaisController", function ($scope, $http, $timeout, $log) {
 			'Accept' : "application/json"
 	}
 	
-	$http.get("/relais/", headers).then(function (response) {
+	$http.get("/relais.json", headers).then(function (response) {
 		var data = response.data;
 		
 		angular.forEach(data, function(value, key) {
@@ -44,11 +44,11 @@ app.controller("relaisController", function ($scope, $http, $timeout, $log) {
     $scope.toggle = function (relais, index) {
     	$log.info(relais.relaisId + ": " + relais.status)
     	if(relais.status) {
-    		$http.post("/relais/" + relais.relaisId + "/off", headers)
+    		$http.post("/relais/" + relais.relaisId + "/off.json", headers)
     		.then(function (response) {});
     		relais.status = !relais.status;
     	} else {
-    		$http.post("/relais/" + relais.relaisId + "/on", headers)
+    		$http.post("/relais/" + relais.relaisId + "/on.json", headers)
     		.then(function (response) {});
     		relais.status = !relais.status;
     	}

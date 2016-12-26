@@ -12,7 +12,7 @@ import de.kunze.heating.host.service.RelaisService;
 import de.kunze.heating.host.transfer.RelaisTransfer;
 
 @RestController
-@RequestMapping("/relais")
+@RequestMapping()
 public class RelaisResource {
 
 	private final RelaisService relaisService;
@@ -21,27 +21,27 @@ public class RelaisResource {
 		this.relaisService = relaisService;
 	}
 
-	@GetMapping
+	@GetMapping(path = "/relais.json")
 	public List<RelaisTransfer> getRelaiss() {
 		return relaisService.getRelaiss();
 	}
 
-	@PostMapping
+	@PostMapping(path = "/relais.json")
 	public RelaisTransfer createRelais() {
 		return relaisService.createRelais();
 	}
 
-	@GetMapping(value = "/{relaisId}")
+	@GetMapping(value = "/relais/{relaisId}")
 	public RelaisTransfer getRelais(@PathVariable(required = true) Long relaisId) {
 		return relaisService.getRelais(relaisId);
 	}
 
-	@PostMapping(value = "/{relaisId}/on")
+	@PostMapping(value = "/relais/{relaisId}/on.json")
 	public RelaisTransfer on(@PathVariable(required = true) Long relaisId) {
 		return relaisService.on(relaisId);
 	}
 
-	@PostMapping(value = "/{relaisId}/off")
+	@PostMapping(value = "/relais/{relaisId}/off.json")
 	public RelaisTransfer off(@PathVariable(required = true) Long relaisId) {
 		return relaisService.off(relaisId);
 	}
