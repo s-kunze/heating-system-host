@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
@@ -22,9 +21,11 @@ import de.kunze.heating.host.api.RelaisResource;
 import de.kunze.heating.host.model.Relais;
 import de.kunze.heating.host.model.Status;
 import de.kunze.heating.host.repository.RelaisRepository;
+import de.kunze.heating.host.service.HeatingConfiguration;
 import de.kunze.heating.host.service.RelaisService;
 import de.kunze.heating.host.transfer.RelaisTransfer;
 import de.kunze.heating.host.transfer.StatusTransfer;
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -41,8 +42,8 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 	@Autowired
 	private JtaTransactionManager jtaTransactionManager;
 
-	@Value("${heating.host.relaisid}")
-	private String relaisIds;
+	@Autowired
+	private HeatingConfiguration heatingConfiguration;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -51,24 +52,22 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-		String[] relaiss = StringUtils.commaDelimitedListToStringArray(relaisIds);
-
-		for (String relais : relaiss) {
-			Relais r = new Relais();
+		StringUtils.commaDelimitedListToSet(heatingConfiguration.getRelaisids()).stream().forEach(relais -> {
+			val r = new Relais();
 
 			r.setStatus(Status.UNKNOWN);
 			r.setWiringPiId(Long.valueOf(relais));
 			relaisRepository.save(r);
-		}
+		});
 	}
 
 	@Override
 	public List<RelaisTransfer> getRelaiss() {
-		List<Relais> relaiss = relaisRepository.findAll();
+		final List<Relais> relaiss = relaisRepository.findAll();
 
 		return relaiss.stream().map(r -> {
-			RelaisTransfer relaisTransfer = new RelaisTransfer(r.getId(),
-					StatusTransfer.valueOf(r.getStatus().toString()), r.getWiringPiId());
+			val relaisTransfer = new RelaisTransfer(r.getId(), StatusTransfer.valueOf(r.getStatus().toString()),
+					r.getWiringPiId());
 
 			relaisTransfer.add(linkTo(RelaisResource.class).slash(r.getId()).withSelfRel());
 
@@ -82,7 +81,7 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 		relais.setStatus(Status.UNKNOWN);
 
 		relais = relaisRepository.save(relais);
-		RelaisTransfer result = new RelaisTransfer(relais.getId(),
+		final RelaisTransfer result = new RelaisTransfer(relais.getId(),
 				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
 
 		return result;
@@ -90,9 +89,9 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 
 	@Override
 	public RelaisTransfer getRelais(Long relaisId) {
-		Relais relais = relaisRepository.findOne(relaisId);
-		RelaisTransfer result = new RelaisTransfer(relais.getId(),
-				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
+		val relais = relaisRepository.findOne(relaisId);
+		val result = new RelaisTransfer(relais.getId(), StatusTransfer.valueOf(relais.getStatus().toString()),
+				relais.getWiringPiId());
 
 		result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
 		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("on").withRel("on"));
@@ -104,35 +103,29 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
 	public RelaisTransfer on(Long relaisId) {
-		Relais relais = relaisRepository.findOne(relaisId);
-		relais.setStatus(Status.ON);
-
-		setRelais(Status.ON, relais.getWiringPiId());
-
-		relais = relaisRepository.save(relais);
-		RelaisTransfer result = new RelaisTransfer(relais.getId(),
-				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
-
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("off").withRel("off"));
-
-		return result;
+		return toggle(relaisId, Status.ON);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
 	public RelaisTransfer off(Long relaisId) {
-		Relais relais = relaisRepository.findOne(relaisId);
-		relais.setStatus(Status.OFF);
+		return toggle(relaisId, Status.OFF);
+	}
 
-		setRelais(Status.OFF, relais.getWiringPiId());
+	private RelaisTransfer toggle(Long relaisId, Status status) {
+		Relais relais = relaisRepository.findOne(relaisId);
+		relais.setStatus(status);
+
+		setRelais(status, relais.getWiringPiId());
 
 		relais = relaisRepository.save(relais);
-		RelaisTransfer result = new RelaisTransfer(relais.getId(),
+		final RelaisTransfer result = new RelaisTransfer(relais.getId(),
 				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
 
+		final String link = Status.ON == status ? "off" : "on";
+
 		result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("on").withRel("on"));
+		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash(link).withRel(link));
 
 		return result;
 	}
@@ -142,7 +135,7 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 			String command = String.format(RELAIS_COMMAND_ACTIVATE, wiringPiId);
 
 			log.info("Exec: {}", command);
-			Process activateRelais = Runtime.getRuntime().exec(command);
+			final Process activateRelais = Runtime.getRuntime().exec(command);
 			activateRelais.waitFor();
 
 			command = null;
@@ -154,7 +147,7 @@ public class RelaisServiceImpl implements RelaisService, InitializingBean, Appli
 
 			if (command != null) {
 				log.info("Exec: {}", command);
-				Process setRelais = Runtime.getRuntime().exec(command);
+				final Process setRelais = Runtime.getRuntime().exec(command);
 				setRelais.waitFor();
 			}
 		} catch (IOException | InterruptedException e) {
