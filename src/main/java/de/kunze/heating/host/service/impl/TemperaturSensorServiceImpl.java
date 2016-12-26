@@ -1,14 +1,10 @@
 package de.kunze.heating.host.service.impl;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import de.kunze.heating.host.api.TemperaturSensorResource;
 import de.kunze.heating.host.model.Temperatur;
 import de.kunze.heating.host.model.TemperaturSensor;
 import de.kunze.heating.host.service.CommunicationService;
@@ -36,8 +32,8 @@ public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 		final Temperatur temperatur = communicationService.getTemperatur(new TemperaturSensor(temperaturSensorId));
 
 		val result = new TemperaturSensorTransfer(temperaturSensorId, temperatur.getTemperatur());
-		result.add(
-				linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
+		// result.add(
+		// linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
 
 		return result;
 	}
