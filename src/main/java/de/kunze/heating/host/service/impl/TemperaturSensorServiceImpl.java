@@ -15,10 +15,8 @@ import de.kunze.heating.host.service.CommunicationService;
 import de.kunze.heating.host.service.TemperaturSensorService;
 import de.kunze.heating.host.transfer.TemperaturSensorTransfer;
 import lombok.val;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
 	private final CommunicationService communicationService;
@@ -29,13 +27,8 @@ public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
 	@Override
 	public List<TemperaturSensorTransfer> getTemperaturSensor() {
-		return communicationService.getTemperaturSensors().stream().map(sensor -> {
-			final String temperaturSensorId = sensor.getName();
-			log.info("Find sensor: {}", temperaturSensorId);
-			val temperaturSensor = new TemperaturSensorTransfer(temperaturSensorId, null);
-			temperaturSensor.add(linkTo(TemperaturSensorResource.class).slash(temperaturSensorId).withSelfRel());
-			return temperaturSensor;
-		}).collect(Collectors.toList());
+		return communicationService.getTemperaturSensors().stream().map(sensor -> getTemperaturSensor(sensor.getName()))
+				.collect(Collectors.toList());
 	}
 
 	@Override

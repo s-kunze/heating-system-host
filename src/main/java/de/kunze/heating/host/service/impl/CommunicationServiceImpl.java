@@ -30,6 +30,7 @@ public class CommunicationServiceImpl implements CommunicationService {
 	private static final String RELAIS_COMMAND_ON = "gpio write %d 0";
 	private static final String RELAIS_COMMAND_OFF = "gpio write %d 1";
 	private static final Path TEMPERATUR = Paths.get("/sys", "bus", "w1", "devices");
+	private static final String TEMPERATUR_FILENAME = "w1_slave";
 
 	private final HeatingConfiguration heatingConfiguration;
 
@@ -46,7 +47,7 @@ public class CommunicationServiceImpl implements CommunicationService {
 	@Override
 	@SneakyThrows
 	public Temperatur getTemperatur(TemperaturSensor temperaturSensor) {
-		final File file = TEMPERATUR.resolve(temperaturSensor.getName()).toFile();
+		final File file = TEMPERATUR.resolve(temperaturSensor.getName()).resolve(TEMPERATUR_FILENAME).toFile();
 
 		final List<String> lines = Files.readAllLines(file.toPath(), Charset.forName("UTF-8"));
 		final String content = StringUtils.collectionToDelimitedString(lines, "");

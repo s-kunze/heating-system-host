@@ -4,13 +4,13 @@ app.controller("temperaturController", function ($scope, $http, $interval) {
 			'Accept' : "application/json"
 	}
 	
-	$http.get("/temperatursensor", headers).then(function (response) {
+	$http.get("/temperatursensor/", headers).then(function (response) {
 		var data = response.data;
 		$scope.sensores = data;
 	});   
 	
 	$interval(function() {
-		$http.get("/temperatursensor", headers).then(function (response) {
+		$http.get("/temperatursensor/", headers).then(function (response) {
 			var data = response.data;
 			$scope.sensores = data;
 		});        
@@ -25,7 +25,7 @@ app.controller("relaisController", function ($scope, $http, $timeout, $log) {
 			'Accept' : "application/json"
 	}
 	
-	$http.get("/relais", headers).then(function (response) {
+	$http.get("/relais/", headers).then(function (response) {
 		var data = response.data;
 		
 		angular.forEach(data, function(value, key) {
