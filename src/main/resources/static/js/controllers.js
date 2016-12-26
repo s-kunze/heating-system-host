@@ -1,5 +1,8 @@
 app.controller("temperaturController", function ($scope, $http, $interval) {
-	var headers = {'Authorization' : 'Basic' + window.btoa("user:user") }
+	var headers = {
+			'Authorization' : 'Basic' + window.btoa("user:user"), 
+			'Accept' : "application/json"
+	}
 	
 	$http.get("/temperatursensor", headers).then(function (response) {
 		var data = response.data;
@@ -7,8 +10,6 @@ app.controller("temperaturController", function ($scope, $http, $interval) {
 	});   
 	
 	$interval(function() {
-		var headers = {'Authorization' : 'Basic' + window.btoa("user:user") }
-		
 		$http.get("/temperatursensor", headers).then(function (response) {
 			var data = response.data;
 			$scope.sensores = data;
@@ -19,7 +20,10 @@ app.controller("temperaturController", function ($scope, $http, $interval) {
 });
 
 app.controller("relaisController", function ($scope, $http, $timeout, $log) {
-	var headers = {'Authorization' : 'Basic' + window.btoa("user:user") }
+	var headers = {
+			'Authorization' : 'Basic' + window.btoa("user:user"), 
+			'Accept' : "application/json"
+	}
 	
 	$http.get("/relais", headers).then(function (response) {
 		var data = response.data;
@@ -38,7 +42,6 @@ app.controller("relaisController", function ($scope, $http, $timeout, $log) {
     $scope.title = "Relais";
     
     $scope.toggle = function (relais, index) {
-    	var headers = {'Authorization' : 'Basic' + window.btoa("user:user") }
     	$log.info(relais.relaisId + ": " + relais.status)
     	if(relais.status) {
     		$http.post("/relais/" + relais.relaisId + "/off", headers)
