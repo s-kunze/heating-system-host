@@ -15,35 +15,35 @@ import de.kunze.heating.host.transfer.RelaisTransfer;
 @RequestMapping()
 public class RelaisResource {
 
-	private final RelaisService relaisService;
+    private final RelaisService relaisService;
 
-	public RelaisResource(RelaisService relaisService) {
-		this.relaisService = relaisService;
-	}
+    public RelaisResource(final RelaisService relaisService) {
+        this.relaisService = relaisService;
+    }
 
-	@GetMapping(path = "/relais.json")
-	public List<RelaisTransfer> getRelaiss() {
-		return relaisService.getRelaiss();
-	}
+    @PostMapping(path = "/relais.json")
+    public RelaisTransfer createRelais() {
+        return relaisService.createRelais();
+    }
 
-	@PostMapping(path = "/relais.json")
-	public RelaisTransfer createRelais() {
-		return relaisService.createRelais();
-	}
+    @GetMapping(value = "/relais/{relaisId}")
+    public RelaisTransfer getRelais(@PathVariable(required = true) final Long relaisId) {
+        return relaisService.getRelais(relaisId);
+    }
 
-	@GetMapping(value = "/relais/{relaisId}")
-	public RelaisTransfer getRelais(@PathVariable(required = true) Long relaisId) {
-		return relaisService.getRelais(relaisId);
-	}
+    @GetMapping(path = "/relais.json")
+    public List<RelaisTransfer> getRelaiss() {
+        return relaisService.getRelaiss();
+    }
 
-	@PostMapping(value = "/relais/{relaisId}/on.json")
-	public RelaisTransfer on(@PathVariable(required = true) Long relaisId) {
-		return relaisService.on(relaisId);
-	}
+    @PostMapping(value = "/relais/{relaisId}/off.json")
+    public RelaisTransfer off(@PathVariable(required = true) final Long relaisId) {
+        return relaisService.off(relaisId);
+    }
 
-	@PostMapping(value = "/relais/{relaisId}/off.json")
-	public RelaisTransfer off(@PathVariable(required = true) Long relaisId) {
-		return relaisService.off(relaisId);
-	}
+    @PostMapping(value = "/relais/{relaisId}/on.json")
+    public RelaisTransfer on(@PathVariable(required = true) final Long relaisId) {
+        return relaisService.on(relaisId);
+    }
 
 }

@@ -9,12 +9,12 @@ import de.kunze.heating.host.model.TemperaturSensor;
 
 public interface CommunicationService {
 
-	List<TemperaturSensor> getTemperaturSensors();
+    List<Relais> getRelaisFromSystem();
 
-	Temperatur getTemperatur(TemperaturSensor temperaturSensor);
+    Temperatur getTemperatur(TemperaturSensor temperaturSensor);
 
-	List<Relais> getRelaisFromSystem();
+    List<TemperaturSensor> getTemperaturSensors();
 
-	void relais(Status status, Long wiringPiId);
+    void relais(Status status, Long wiringPiId);
 
 }

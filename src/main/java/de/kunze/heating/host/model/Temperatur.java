@@ -7,6 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class Temperatur {
 
-	private Integer temperatur;
+    private Integer temperatur;
 
 }

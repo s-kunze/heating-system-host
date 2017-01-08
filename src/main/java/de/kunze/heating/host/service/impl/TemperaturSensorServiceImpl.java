@@ -15,27 +15,27 @@ import lombok.val;
 @Service
 public class TemperaturSensorServiceImpl implements TemperaturSensorService {
 
-	private final CommunicationService communicationService;
+    private final CommunicationService communicationService;
 
-	public TemperaturSensorServiceImpl(CommunicationService communicationService) {
-		this.communicationService = communicationService;
-	}
+    public TemperaturSensorServiceImpl(final CommunicationService communicationService) {
+        this.communicationService = communicationService;
+    }
 
-	@Override
-	public List<TemperaturSensorTransfer> getTemperaturSensor() {
-		return communicationService.getTemperaturSensors().stream().map(sensor -> getTemperaturSensor(sensor.getName()))
-				.collect(Collectors.toList());
-	}
+    @Override
+    public List<TemperaturSensorTransfer> getTemperaturSensor() {
+        return communicationService.getTemperaturSensors().stream().map(sensor -> getTemperaturSensor(sensor.getName()))
+                .collect(Collectors.toList());
+    }
 
-	@Override
-	public TemperaturSensorTransfer getTemperaturSensor(String temperaturSensorId) {
-		final Temperatur temperatur = communicationService.getTemperatur(new TemperaturSensor(temperaturSensorId));
+    @Override
+    public TemperaturSensorTransfer getTemperaturSensor(final String temperaturSensorId) {
+        final Temperatur temperatur = communicationService.getTemperatur(new TemperaturSensor(temperaturSensorId));
 
-		val result = new TemperaturSensorTransfer(temperaturSensorId, temperatur.getTemperatur());
-		// result.add(
-		// linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
+        val result = new TemperaturSensorTransfer(temperaturSensorId, temperatur.getTemperatur());
+        // result.add(
+        // linkTo(methodOn(TemperaturSensorResource.class).getTemperaturSensor(temperaturSensorId)).withSelfRel());
 
-		return result;
-	}
+        return result;
+    }
 
 }

@@ -11,8 +11,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class RelaisTransfer extends ResourceSupport {
 
-	private Long relaisId;
-	private StatusTransfer status;
-	private Long wiringPiId;
+    private Long relaisId;
+    private StatusTransfer status;
+    private Long wiringPiId;
 
 }

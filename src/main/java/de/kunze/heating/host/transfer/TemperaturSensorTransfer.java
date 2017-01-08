@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class TemperaturSensorTransfer extends ResourceSupport {
 
-	private String temperaturSensorId;
-	private Integer temperatur;
+    private String temperaturSensorId;
+    private Integer temperatur;
 
 }

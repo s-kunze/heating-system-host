@@ -26,68 +26,68 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CommunicationServiceImpl implements CommunicationService {
 
-	private static final String RELAIS_COMMAND_ACTIVATE = "gpio mode %d out";
-	private static final String RELAIS_COMMAND_ON = "gpio write %d 0";
-	private static final String RELAIS_COMMAND_OFF = "gpio write %d 1";
-	private static final Path TEMPERATUR = Paths.get("/sys", "bus", "w1", "devices");
-	private static final String TEMPERATUR_FILENAME = "w1_slave";
+    private static final String RELAIS_COMMAND_ACTIVATE = "gpio mode %d out";
+    private static final String RELAIS_COMMAND_ON = "gpio write %d 0";
+    private static final String RELAIS_COMMAND_OFF = "gpio write %d 1";
+    private static final Path TEMPERATUR = Paths.get("/sys", "bus", "w1", "devices");
+    private static final String TEMPERATUR_FILENAME = "w1_slave";
 
-	private final HeatingConfiguration heatingConfiguration;
+    private final HeatingConfiguration heatingConfiguration;
 
-	public CommunicationServiceImpl(HeatingConfiguration heatingConfiguration) {
-		this.heatingConfiguration = heatingConfiguration;
-	}
+    public CommunicationServiceImpl(final HeatingConfiguration heatingConfiguration) {
+        this.heatingConfiguration = heatingConfiguration;
+    }
 
-	@Override
-	public List<TemperaturSensor> getTemperaturSensors() {
-		return Arrays.stream(TEMPERATUR.toFile().listFiles(f -> !f.getName().contains("bus")))
-				.map(file -> new TemperaturSensor(file.getName())).collect(Collectors.toList());
-	}
+    @Override
+    public List<Relais> getRelaisFromSystem() {
+        return StringUtils.commaDelimitedListToSet(heatingConfiguration.getRelaisids()).stream()
+                .map(id -> new Relais(null, Status.UNKNOWN, Long.valueOf(id))).collect(Collectors.toList());
+    }
 
-	@Override
-	@SneakyThrows
-	public Temperatur getTemperatur(TemperaturSensor temperaturSensor) {
-		final File file = TEMPERATUR.resolve(temperaturSensor.getName()).resolve(TEMPERATUR_FILENAME).toFile();
+    @Override
+    @SneakyThrows
+    public Temperatur getTemperatur(final TemperaturSensor temperaturSensor) {
+        final File file = TEMPERATUR.resolve(temperaturSensor.getName()).resolve(TEMPERATUR_FILENAME).toFile();
 
-		final List<String> lines = Files.readAllLines(file.toPath(), Charset.forName("UTF-8"));
-		final String content = StringUtils.collectionToDelimitedString(lines, "");
+        final List<String> lines = Files.readAllLines(file.toPath(), Charset.forName("UTF-8"));
+        final String content = StringUtils.collectionToDelimitedString(lines, "");
 
-		final String temperatur = content.substring(content.lastIndexOf('=') + 1);
-		log.info("Temperatur is: {}", temperatur);
-		return new Temperatur(Integer.valueOf(temperatur));
-	}
+        final String temperatur = content.substring(content.lastIndexOf('=') + 1);
+        log.info("Temperatur is: {}", temperatur);
+        return new Temperatur(Integer.valueOf(temperatur));
+    }
 
-	@Override
-	public List<Relais> getRelaisFromSystem() {
-		return StringUtils.commaDelimitedListToSet(heatingConfiguration.getRelaisids()).stream()
-				.map(id -> new Relais(null, Status.UNKNOWN, Long.valueOf(id))).collect(Collectors.toList());
-	}
+    @Override
+    public List<TemperaturSensor> getTemperaturSensors() {
+        return Arrays.stream(TEMPERATUR.toFile().listFiles(f -> !f.getName().contains("bus")))
+                .map(file -> new TemperaturSensor(file.getName())).collect(Collectors.toList());
+    }
 
-	@Override
-	public void relais(Status status, Long wiringPiId) {
-		try {
-			String command = String.format(RELAIS_COMMAND_ACTIVATE, wiringPiId);
+    @Override
+    public void relais(final Status status, final Long wiringPiId) {
+        try {
+            String command = String.format(RELAIS_COMMAND_ACTIVATE, wiringPiId);
 
-			log.info("Exec: {}", command);
-			final Process activateRelais = Runtime.getRuntime().exec(command);
-			activateRelais.waitFor();
+            log.info("Exec: {}", command);
+            final Process activateRelais = Runtime.getRuntime().exec(command);
+            activateRelais.waitFor();
 
-			command = null;
-			if (Status.ON == status) {
-				command = String.format(RELAIS_COMMAND_ON, wiringPiId);
-			} else if (Status.OFF == status) {
-				command = String.format(RELAIS_COMMAND_OFF, wiringPiId);
-			}
+            command = null;
+            if (Status.ON == status) {
+                command = String.format(RELAIS_COMMAND_ON, wiringPiId);
+            } else if (Status.OFF == status) {
+                command = String.format(RELAIS_COMMAND_OFF, wiringPiId);
+            }
 
-			if (command != null) {
-				log.info("Exec: {}", command);
-				final Process setRelais = Runtime.getRuntime().exec(command);
-				setRelais.waitFor();
-			}
-		} catch (IOException | InterruptedException e) {
-			log.error("", e);
-			throw new RuntimeException(e);
-		}
-	}
+            if (command != null) {
+                log.info("Exec: {}", command);
+                final Process setRelais = Runtime.getRuntime().exec(command);
+                setRelais.waitFor();
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("", e);
+            throw new RuntimeException(e);
+        }
+    }
 
 }

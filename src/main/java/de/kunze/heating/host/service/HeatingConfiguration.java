@@ -10,6 +10,6 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "heating")
 public class HeatingConfiguration {
 
-	private String relaisids;
-	
+    private String relaisids;
+
 }

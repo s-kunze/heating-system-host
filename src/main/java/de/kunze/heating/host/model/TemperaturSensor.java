@@ -7,6 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class TemperaturSensor {
 
-	private String name;
+    private String name;
 
 }

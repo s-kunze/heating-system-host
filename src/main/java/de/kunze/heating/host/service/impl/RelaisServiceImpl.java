@@ -28,94 +28,94 @@ import lombok.val;
 @Service
 public class RelaisServiceImpl implements RelaisService, ApplicationListener<ContextRefreshedEvent> {
 
-	private final RelaisRepository relaisRepository;
-	private final JtaTransactionManager jtaTransactionManager;
-	private final CommunicationService communicationService;
+    private final RelaisRepository relaisRepository;
+    private final JtaTransactionManager jtaTransactionManager;
+    private final CommunicationService communicationService;
 
-	public RelaisServiceImpl(RelaisRepository relaisRepository, JtaTransactionManager jtaTransactionManager,
-			CommunicationService communicationService) {
-		this.relaisRepository = relaisRepository;
-		this.jtaTransactionManager = jtaTransactionManager;
-		this.communicationService = communicationService;
-	}
+    public RelaisServiceImpl(final RelaisRepository relaisRepository, final JtaTransactionManager jtaTransactionManager,
+            final CommunicationService communicationService) {
+        this.relaisRepository = relaisRepository;
+        this.jtaTransactionManager = jtaTransactionManager;
+        this.communicationService = communicationService;
+    }
 
-	@PostConstruct
-	public void afterPropertiesSet() throws Exception {
-		jtaTransactionManager.setAllowCustomIsolationLevels(true);
-	}
+    @PostConstruct
+    public void afterPropertiesSet() throws Exception {
+        jtaTransactionManager.setAllowCustomIsolationLevels(true);
+    }
 
-	@Override
-	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-		communicationService.getRelaisFromSystem().forEach(r -> relaisRepository.save(r));
-	}
+    @Override
+    public RelaisTransfer createRelais() {
+        Relais relais = new Relais();
+        relais.setStatus(Status.UNKNOWN);
 
-	@Override
-	public List<RelaisTransfer> getRelaiss() {
-		final List<Relais> relaiss = relaisRepository.findAll();
+        relais = relaisRepository.save(relais);
+        final RelaisTransfer result = new RelaisTransfer(relais.getId(),
+                StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
 
-		return relaiss.stream().map(r -> {
-			val relaisTransfer = new RelaisTransfer(r.getId(), StatusTransfer.valueOf(r.getStatus().toString()),
-					r.getWiringPiId());
+        return result;
+    }
 
-			relaisTransfer.add(linkTo(RelaisResource.class).slash(r.getId()).withSelfRel());
+    @Override
+    public RelaisTransfer getRelais(final Long relaisId) {
+        val relais = relaisRepository.findOne(relaisId);
+        val result = new RelaisTransfer(relais.getId(), StatusTransfer.valueOf(relais.getStatus().toString()),
+                relais.getWiringPiId());
 
-			return relaisTransfer;
-		}).collect(Collectors.toList());
-	}
+        result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
+        result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("on").withRel("on"));
+        result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("off").withRel("off"));
 
-	@Override
-	public RelaisTransfer createRelais() {
-		Relais relais = new Relais();
-		relais.setStatus(Status.UNKNOWN);
+        return result;
+    }
 
-		relais = relaisRepository.save(relais);
-		final RelaisTransfer result = new RelaisTransfer(relais.getId(),
-				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
+    @Override
+    public List<RelaisTransfer> getRelaiss() {
+        final List<Relais> relaiss = relaisRepository.findAll();
 
-		return result;
-	}
+        return relaiss.stream().map(r -> {
+            val relaisTransfer = new RelaisTransfer(r.getId(), StatusTransfer.valueOf(r.getStatus().toString()),
+                    r.getWiringPiId());
 
-	@Override
-	public RelaisTransfer getRelais(Long relaisId) {
-		val relais = relaisRepository.findOne(relaisId);
-		val result = new RelaisTransfer(relais.getId(), StatusTransfer.valueOf(relais.getStatus().toString()),
-				relais.getWiringPiId());
+            relaisTransfer.add(linkTo(RelaisResource.class).slash(r.getId()).withSelfRel());
 
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("on").withRel("on"));
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash("off").withRel("off"));
+            return relaisTransfer;
+        }).collect(Collectors.toList());
+    }
 
-		return result;
-	}
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
+    public RelaisTransfer off(final Long relaisId) {
+        return toggle(relaisId, Status.OFF);
+    }
 
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
-	public RelaisTransfer on(Long relaisId) {
-		return toggle(relaisId, Status.ON);
-	}
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
+    public RelaisTransfer on(final Long relaisId) {
+        return toggle(relaisId, Status.ON);
+    }
 
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, timeout = 20000, rollbackFor = Exception.class)
-	public RelaisTransfer off(Long relaisId) {
-		return toggle(relaisId, Status.OFF);
-	}
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        communicationService.getRelaisFromSystem().forEach(r -> relaisRepository.save(r));
+    }
 
-	private RelaisTransfer toggle(Long relaisId, Status status) {
-		Relais relais = relaisRepository.findOne(relaisId);
-		relais.setStatus(status);
+    private RelaisTransfer toggle(final Long relaisId, final Status status) {
+        Relais relais = relaisRepository.findOne(relaisId);
+        relais.setStatus(status);
 
-		communicationService.relais(status, relais.getWiringPiId());
+        communicationService.relais(status, relais.getWiringPiId());
 
-		relais = relaisRepository.save(relais);
-		final RelaisTransfer result = new RelaisTransfer(relais.getId(),
-				StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
+        relais = relaisRepository.save(relais);
+        final RelaisTransfer result = new RelaisTransfer(relais.getId(),
+                StatusTransfer.valueOf(relais.getStatus().toString()), relais.getWiringPiId());
 
-		final String link = Status.ON == status ? "off" : "on";
+        final String link = Status.ON == status ? "off" : "on";
 
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
-		result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash(link).withRel(link));
+        result.add(linkTo(RelaisResource.class).slash(relais.getId()).withSelfRel());
+        result.add(linkTo(RelaisResource.class).slash(relais.getId()).slash(link).withRel(link));
 
-		return result;
-	}
+        return result;
+    }
 
 }
